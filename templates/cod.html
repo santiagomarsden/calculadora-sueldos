@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Empleados de Comercio – CCT 130/75</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --accent: #f78166;
+    --accent2: #79c0ff;
+    --accent3: #56d364;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --negative: #ff7b72;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #0d1117 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(247,129,102,.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(247,129,102,.12);
+    border: 1px solid rgba(247,129,102,.3);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+  .header h1 span { color: var(--accent); }
+  .header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 16px 60px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── FORM CONTROLS ── */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  select, input[type=number] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  select option { background: #1c2330; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  /* custom select arrow */
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 12px;
+  }
+
+  /* toggle row */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .toggle-label small { color: var(--muted); display: block; font-size: 11px; }
+
+  /* checkbox styled as toggle */
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border);
+    border-radius: 22px;
+    transition: .25s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .25s;
+  }
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+  /* ── CALCULATE BTN ── */
+  .btn-calc {
+    width: 100%;
+    background: var(--accent);
+    color: #0d1117;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: .04em;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-calc:hover { opacity: .9; }
+  .btn-calc:active { transform: scale(.98); }
+
+  /* ── RESULT ── */
+  #resultado {
+    margin-top: 24px;
+    display: none;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .kpi-value.green { color: var(--accent3); }
+  .kpi-value.blue  { color: var(--accent2); }
+  .kpi-value.red   { color: var(--negative); }
+  .kpi-value.orange{ color: var(--accent); }
+
+  /* detail table */
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .detail-table thead th {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-table thead th:last-child { text-align: right; }
+  .detail-table tbody tr { border-bottom: 1px solid rgba(48,54,61,.6); }
+  .detail-table tbody tr:last-child { border-bottom: none; }
+  .detail-table td {
+    padding: 9px 10px;
+    color: var(--text);
+  }
+  .detail-table td:last-child {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+  .detail-table .sep td {
+    background: rgba(247,129,102,.06);
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 600;
+    padding: 6px 10px;
+  }
+  .detail-table .total-row td {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    border-top: 2px solid var(--border);
+    padding: 12px 10px;
+  }
+  .detail-table .neto-row td {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--accent3);
+    padding: 12px 10px;
+  }
+  .badge-rem {
+    display: inline-block;
+    background: rgba(86,211,100,.12);
+    color: var(--accent3);
+    border-radius: 4px;
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+  .badge-norem {
+    display: inline-block;
+    background: rgba(121,192,255,.1);
+    color: var(--accent2);
+    border-radius: 4px;
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+  .badge-desc {
+    display: inline-block;
+    background: rgba(255,123,114,.1);
+    color: var(--negative);
+    border-radius: 4px;
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* sac section */
+  .sac-box {
+    background: rgba(121,192,255,.06);
+    border: 1px solid rgba(121,192,255,.2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .sac-box strong { color: var(--accent2); font-family: 'DM Mono', monospace; }
+
+  /* disclaimer */
+  .disclaimer {
+    margin-top: 24px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--accent);
+    background: rgba(247,129,102,.05);
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* full-width helper */
+  .full { grid-column: 1 / -1; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">CCT 130/75 · Actualizada Abril 2026</div>
+  <h1>Calculadora <span>Empleados de Comercio</span></h1>
+  <p>Liquidación mensual según Convenio Colectivo de Trabajo 130/75 · FAECYS</p>
+</div>
+
+<div class="wrapper">
+
+  <!-- INPUTS -->
+  <div class="grid">
+
+    <!-- Columna 1: Datos del empleado -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Datos del Empleado</div>
+
+      <div class="field">
+        <label>Categoría</label>
+        <div class="select-wrap">
+          <select id="categoria">
+            <optgroup label="Maestranza">
+              <option value="1055795">Maestranza A</option>
+              <option value="1058852">Maestranza B</option>
+              <option value="1069560">Maestranza C</option>
+            </optgroup>
+            <optgroup label="Administrativo">
+              <option value="1067268" selected>Administrativo A</option>
+              <option value="1071860">Administrativo B</option>
+              <option value="1076448">Administrativo C</option>
+              <option value="1090218">Administrativo D</option>
+              <option value="1101690">Administrativo E</option>
+              <option value="1118519">Administrativo F</option>
+            </optgroup>
+            <optgroup label="Cajeros">
+              <option value="1071091">Cajero A</option>
+              <option value="1076448">Cajero B</option>
+              <option value="1083333">Cajero C</option>
+            </optgroup>
+            <optgroup label="Personal Auxiliar">
+              <option value="1071091">Auxiliar A</option>
+              <option value="1078740">Auxiliar B</option>
+              <option value="1103985">Auxiliar C</option>
+            </optgroup>
+            <optgroup label="Auxiliar Especializado">
+              <option value="1080274">Auxiliar Especializado A</option>
+              <option value="1094041">Auxiliar Especializado B</option>
+            </optgroup>
+            <optgroup label="Vendedores">
+              <option value="1071091">Vendedor A</option>
+              <option value="1094044">Vendedor B</option>
+              <option value="1101690">Vendedor C</option>
+              <option value="1118519">Vendedor D</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Antigüedad (años completos)</label>
+        <input type="number" id="antiguedad" min="0" max="50" value="0">
+      </div>
+
+      <div class="field">
+        <label>Jornada laboral</label>
+        <div class="select-wrap">
+          <select id="jornada">
+            <option value="1">Completa (8 hs / 48 hs sem.)</option>
+            <option value="0.8333">Reducida 40 hs / sem.</option>
+            <option value="0.75">Reducida 36 hs / sem.</option>
+            <option value="0.6667">Reducida 32 hs / sem.</option>
+            <option value="0.5">Parcial 24 hs / sem.</option>
+            <option value="custom">Personalizada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" id="campo-horas" style="display:none">
+        <label>Horas semanales trabajadas</label>
+        <input type="number" id="horas-semanales" min="1" max="48" value="20">
+      </div>
+
+      <div class="field">
+        <label>Días trabajados en el mes</label>
+        <input type="number" id="dias-trabajados" min="1" max="30" value="30">
+      </div>
+    </div>
+
+    <!-- Columna 2: Adicionales y opciones -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Adicionales y Opciones</div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">
+          Presentismo (Art. 40)
+          <small>No tuvo ausencias injustificadas</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="presentismo" checked><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">
+          Suma no remunerativa $120.000
+          <small>Acuerdo Abr 2026 ($100.000 + $20.000)</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="snr" checked><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">
+          Calcular SAC proporcional
+          <small>Aguinaldo acumulado al mes</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="calcular-sac"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">
+          Afiliado al sindicato
+          <small>Cuota sindical 2% (Art. 101 CCT)</small>
+        </div>
+        <label class="toggle"><input type="checkbox" id="afiliado"><span class="slider"></span></label>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label>Horas extras al 50% (días hábiles)</label>
+        <input type="number" id="horas-extra-50" min="0" value="0">
+      </div>
+
+      <div class="field">
+        <label>Horas extras al 100% (dom/fer/sáb tarde)</label>
+        <input type="number" id="horas-extra-100" min="0" value="0">
+      </div>
+
+      <div class="field">
+        <label>Feriados trabajados (días)</label>
+        <input type="number" id="feriados" min="0" max="30" value="0">
+      </div>
+
+      <div class="field">
+        <label>Mes de liquidación</label>
+        <div class="select-wrap">
+          <select id="mes">
+            <option value="4">Abril 2026</option>
+            <option value="5">Mayo 2026</option>
+            <option value="6">Junio 2026</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <button class="btn-calc" onclick="calcular()">⟶ CALCULAR LIQUIDACIÓN</button>
+
+  <!-- RESULTADO -->
+  <div id="resultado">
+
+    <!-- KPIs -->
+    <div class="result-grid" id="kpi-container" style="margin-top:24px"></div>
+
+    <!-- Detalle -->
+    <div class="card" style="margin-top:4px">
+      <div class="card-title"><span class="dot"></span> Detalle de Liquidación</div>
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Cálculo</th>
+            <th>Importe</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-detalle"></tbody>
+      </table>
+    </div>
+
+    <!-- SAC -->
+    <div class="sac-box" id="sac-info" style="display:none"></div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <strong style="color:var(--accent)">Aviso:</strong> Esta calculadora es orientativa. Los valores están basados en las escalas del CCT 130/75 vigentes al acuerdo del 26/03/2026. La liquidación final puede variar según zona, empresa, acuerdos particulares u otras condiciones. Siempre consultá a un contador o profesional de RRHH para liquidaciones oficiales.
+    </div>
+
+  </div><!-- /resultado -->
+
+</div><!-- /wrapper -->
+
+<script>
+// ── Descuentos de ley ──
+const JUBILACION   = 0.11;   // 11%
+const INSSJA       = 0.03;   // 3% Ley 19.032 (PAMI)
+const OBRA_SOCIAL  = 0.03;   // 3% OSECAC
+const SINDICATO    = 0.02;   // 2% (solo afiliados)
+const APORTE_SOL   = 0.005;  // 0.5% solidario FAECYS (todos)
+
+// Valor hora diaria: básico / 200 horas mensuales (8hs x 25 días)
+// Pero para hs extras usamos: básico / 30 / 8
+
+function fmt(n) {
+  return '$ ' + Math.round(n).toLocaleString('es-AR');
+}
+function pct(n, d) {
+  if (!d) return '—';
+  return (n / d * 100).toFixed(1) + '%';
+}
+
+document.getElementById('jornada').addEventListener('change', function() {
+  document.getElementById('campo-horas').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+
+function calcular() {
+  // ── Inputs ──
+  const basicoBase = parseFloat(document.getElementById('categoria').value);
+  const ant        = parseInt(document.getElementById('antiguedad').value) || 0;
+  const diasTrab   = parseInt(document.getElementById('dias-trabajados').value) || 30;
+  const presentism = document.getElementById('presentismo').checked;
+  const snr        = document.getElementById('snr').checked;
+  const afiliado   = document.getElementById('afiliado').checked;
+  const sacCalc    = document.getElementById('calcular-sac').checked;
+  const hExtra50   = parseFloat(document.getElementById('horas-extra-50').value) || 0;
+  const hExtra100  = parseFloat(document.getElementById('horas-extra-100').value) || 0;
+  const ferTrab    = parseInt(document.getElementById('feriados').value) || 0;
+  const mes        = parseInt(document.getElementById('mes').value);
+
+  // Jornada
+  let jornadaFactor = 1;
+  const jSel = document.getElementById('jornada').value;
+  if (jSel === 'custom') {
+    jornadaFactor = (parseFloat(document.getElementById('horas-semanales').value) || 48) / 48;
+  } else {
+    jornadaFactor = parseFloat(jSel);
+  }
+
+  // ── Básico proporcional por días ──
+  const basico = basicoBase * jornadaFactor;
+  const basicoProp = basico * diasTrab / 30;
+
+  // ── Antigüedad ──
+  const pctAnt = ant * 0.01;
+  const antiguedadMonto = basicoProp * pctAnt;
+
+  // ── Suma NO Remunerativa ──
+  // Abril 2026: $100.000 absorbidos + $20.000 nuevo acuerdo = $120.000 (proporcional a jornada)
+  const SNR_BASE = snr ? 120000 * jornadaFactor * diasTrab / 30 : 0;
+  // Antigüedad sobre SNR
+  const antSNR   = SNR_BASE * pctAnt;
+  const snrTotal = SNR_BASE + antSNR;
+
+  // ── Presentismo: 1/12 de (básico + antigüedad) sobre remunerativo + SNR total ──
+  // Presentismo se pierde si falto, pero calculamos sobre el total del mes
+  const basePresent = basicoProp + antiguedadMonto + snrTotal;
+  const presentMonto = presentism ? basePresent / 12 : 0;
+
+  // ── Horas extras ──
+  const valorHora = basico / 30 / 8;
+  const hExtra50Monto  = hExtra50  * valorHora * 1.5;
+  const hExtra100Monto = hExtra100 * valorHora * 2;
+
+  // ── Feriados trabajados: valor día + 100% extra ──
+  const valorDia  = (basico + (basico * pctAnt) + snrTotal / diasTrab * 30) / 25;
+  const feriadoMonto = ferTrab * valorDia; // el plus (ya cobran el día en el básico)
+
+  // ── BRUTO REMUNERATIVO ──
+  const brutoRem = basicoProp + antiguedadMonto + presentMonto + hExtra50Monto + hExtra100Monto + feriadoMonto;
+  // ── BRUTO NO REM ──
+  const brutoNoRem = snrTotal;
+  // ── BRUTO TOTAL ──
+  const brutoTotal = brutoRem + brutoNoRem;
+
+  // ── Descuentos (solo sobre remunerativo) ──
+  const dJub  = brutoRem * JUBILACION;
+  const dPami = brutoRem * INSSJA;
+  const dOS   = brutoRem * OBRA_SOCIAL;
+  const dSind = afiliado ? brutoRem * SINDICATO : 0;
+  const dSol  = brutoTotal * APORTE_SOL; // aporte solidario: sobre total
+  const totalDesc = dJub + dPami + dOS + dSind + dSol;
+
+  // ── NETO ──
+  const neto = brutoTotal - totalDesc;
+
+  // ── SAC proporcional ──
+  // SAC = mejor remuneración del semestre / 12 * meses acumulados
+  const mesesAcum = mes <= 6 ? mes : mes - 6; // semestre en curso
+  const sacProp = (brutoRem / 12) * mesesAcum;
+
+  // ══ RENDER KPIs ══
+  const kpiData = [
+    { label: 'Bruto Total',     val: fmt(brutoTotal), cls: '' },
+    { label: 'Descuentos',      val: fmt(totalDesc),  cls: 'red' },
+    { label: 'NETO a Cobrar',   val: fmt(neto),       cls: 'green' },
+    { label: 'SAC Proporcional',val: sacCalc ? fmt(sacProp) : '—', cls: 'blue' },
+  ];
+  document.getElementById('kpi-container').innerHTML = kpiData.map(k =>
+    `<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-value ${k.cls}">${k.val}</div></div>`
+  ).join('');
+
+  // ══ RENDER TABLA ══
+  const rows = [];
+
+  const R = `<span class="badge-rem">REM</span>`;
+  const NR = `<span class="badge-norem">N-REM</span>`;
+  const D = `<span class="badge-desc">DESC</span>`;
+
+  rows.push(`<tr class="sep"><td colspan="3">HABERES REMUNERATIVOS</td></tr>`);
+  rows.push(tr(`Sueldo Básico ${R}`, `${fmt(basico)} × ${diasTrab}/30`, fmt(basicoProp)));
+  if (ant > 0) rows.push(tr(`Antigüedad ${ant} año${ant>1?'s':''} (${ant}%) ${R}`, `${fmt(basicoProp)} × ${ant}%`, fmt(antiguedadMonto)));
+  if (presentism) rows.push(tr(`Presentismo Art. 40 ${R}`, `(Básico+Ant+SNR) / 12`, fmt(presentMonto)));
+  if (hExtra50 > 0) rows.push(tr(`Horas Extra 50% (${hExtra50} hs) ${R}`, `${hExtra50} hs × ${fmt(valorHora)} × 1.5`, fmt(hExtra50Monto)));
+  if (hExtra100 > 0) rows.push(tr(`Horas Extra 100% (${hExtra100} hs) ${R}`, `${hExtra100} hs × ${fmt(valorHora)} × 2`, fmt(hExtra100Monto)));
+  if (ferTrab > 0) rows.push(tr(`Feriados trabajados (${ferTrab} días) ${R}`, `${ferTrab} × ${fmt(valorDia)}`, fmt(feriadoMonto)));
+
+  rows.push(tr_total('Subtotal Remunerativo', fmt(brutoRem)));
+
+  if (snr) {
+    rows.push(`<tr class="sep"><td colspan="3">HABERES NO REMUNERATIVOS</td></tr>`);
+    rows.push(tr(`Acuerdo Abr 2026 – Suma Fija ${NR}`, `$120.000 × ${jornadaFactor===1?'jornada completa':Math.round(jornadaFactor*100)+'% jornada'} × ${diasTrab}/30`, fmt(SNR_BASE)));
+    if (ant > 0) rows.push(tr(`Antigüedad s/ SNR (${ant}%) ${NR}`, `${fmt(SNR_BASE)} × ${ant}%`, fmt(antSNR)));
+    rows.push(tr_total('Subtotal No Remunerativo', fmt(snrTotal)));
+  }
+
+  rows.push(tr_bruto('TOTAL BRUTO', fmt(brutoTotal)));
+
+  rows.push(`<tr class="sep"><td colspan="3">DESCUENTOS (sobre Rem.)</td></tr>`);
+  rows.push(tr(`Jubilación (11%) ${D}`, `${fmt(brutoRem)} × 11%`, '- ' + fmt(dJub)));
+  rows.push(tr(`PAMI / Ley 19.032 (3%) ${D}`, `${fmt(brutoRem)} × 3%`, '- ' + fmt(dPami)));
+  rows.push(tr(`Obra Social OSECAC (3%) ${D}`, `${fmt(brutoRem)} × 3%`, '- ' + fmt(dOS)));
+  if (afiliado) rows.push(tr(`Cuota Sindical (2%) ${D}`, `${fmt(brutoRem)} × 2%`, '- ' + fmt(dSind)));
+  rows.push(tr(`Aporte Solidario FAECYS (0,5%) ${D}`, `${fmt(brutoTotal)} × 0,5%`, '- ' + fmt(dSol)));
+  rows.push(tr_total('Total Descuentos', '- ' + fmt(totalDesc)));
+
+  rows.push(`<tr class="neto-row"><td>SUELDO NETO A COBRAR</td><td></td><td>${fmt(neto)}</td></tr>`);
+
+  document.getElementById('tabla-detalle').innerHTML = rows.join('');
+
+  // SAC info
+  const sacInfo = document.getElementById('sac-info');
+  if (sacCalc) {
+    sacInfo.style.display = 'block';
+    const semestre = mes <= 6 ? '1er semestre (jun)' : '2do semestre (dic)';
+    sacInfo.innerHTML = `<strong>SAC proporcional – ${semestre}:</strong> ${fmt(sacProp)} (${mesesAcum} mes${mesesAcum>1?'es':''} acumulados). El SAC se paga el 30/06 y el 18/12 de cada año.`;
+  } else {
+    sacInfo.style.display = 'none';
+  }
+
+  document.getElementById('resultado').style.display = 'block';
+  document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function tr(concepto, calculo, importe) {
+  return `<tr><td>${concepto}</td><td style="color:var(--muted);font-size:11px;font-family:'DM Mono',monospace">${calculo}</td><td>${importe}</td></tr>`;
+}
+function tr_total(label, importe) {
+  return `<tr class="total-row"><td><strong>${label}</strong></td><td></td><td><strong>${importe}</strong></td></tr>`;
+}
+function tr_bruto(label, importe) {
+  return `<tr style="background:rgba(247,129,102,.04)"><td style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;padding:12px 10px">${label}</td><td></td><td style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;text-align:right;color:var(--accent);padding:12px 10px">${importe}</td></tr>`;
+}
+</script>
+</body>
+</html>
