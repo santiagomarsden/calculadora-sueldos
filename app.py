@@ -5,11 +5,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return render_template("calculadora_modificada(3).html")
+    return render_template("calculadora_modificada (3).html")
 
 @app.route("/calculadora")
 def calculadora():
-    return render_template("calculadora_modificada(3).html")
+    return render_template("calculadora_modificada (3).html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
